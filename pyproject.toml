@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claim-guard"
+version = "0.1.0"
+description = "Removes sentences an AI agent cannot back up: claimed actions it could not take, details missing from its sources, and statements that contradict live status. Keeps an audit record of every removal."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Sheena Lindsey-Smith" }]
+keywords = ["llm", "agents", "hallucination", "guardrails", "grounding", "audit"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+claim_guard = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src"]
+addopts = "--doctest-modules"
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# RUF001-003 flag the curly quotes the patterns match on purpose. SIM905 would turn the
+# stopword list into a long list literal.
+ignore = ["RUF001", "RUF002", "RUF003", "SIM905"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests", "benchmark"]
