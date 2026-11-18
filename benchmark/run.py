@@ -27,6 +27,9 @@ from claim_guard import Source, guard, split_sentences
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "benchmark" / "data"
 REPORT = ROOT / "BENCHMARK.md"
+README = ROOT / "README.md"
+MARK_START = "<!-- benchmark:start -->"
+MARK_END = "<!-- benchmark:end -->"
 SPLITS = (
     ("dev", "Development split. Written alongside the rules; the rules were tuned on it."),
     (
@@ -261,8 +264,9 @@ def render(results: list[SplitResult]) -> str:
     w("## What a pattern-based guard cannot catch")
     w("")
     w("The guard reads surface patterns: action verbs and tense, specific values, status words")
-    w("next to a named system, and word overlap with sources. That design makes it fast, free,")
-    w("deterministic and easy to audit, and it sets hard limits:")
+    w("next to a named system, and word overlap with sources. That design needs no model or")
+    w("network calls, gives the same answer every time, and is easy to audit. It also sets hard")
+    w("limits, and the misses listed above show each of them:")
     w("")
     w('* **Wrong general statements.** "The warranty covers water damage" has no number and')
     w("  no action verb. If a source says the opposite, the guard cannot tell. The")
@@ -270,9 +274,12 @@ def render(results: list[SplitResult]) -> str:
     w("* **Right value, wrong role.** If the source says Plan A is $20 and Plan B is $35, the")
     w('  sentence "Plan A costs $35" passes, because $35 is in the sources. The guard checks')
     w("  that a value exists, not what it is attached to.")
-    w('* **Actions phrased without an action pattern.** "Your manager has approved it" or')
-    w('  "Priya knows about the change" imply completed work without the verb forms the guard')
-    w("  looks for.")
+    w("* **Actions outside the verb list.** First person claims are matched against a fixed")
+    w('  list of action verbs, so "I reconnected it" and "I blocked the sender" pass. So do')
+    w('  claims with no action verb at all, such as "Seat 12A is yours".')
+    w("* **Counts, durations and measurements.** The detail check covers prices, percentages,")
+    w('  dates, links, file names, emails and phone numbers. "Within 3 days", "10 MB" and')
+    w('  "12 cities" are not checked, and neither are clock times such as "7:40".')
     w("* **Agents with tools.** With `tools_available=True` the guard keeps action claims, since")
     w("  text alone cannot show whether a tool call happened. Checking those claims needs the")
     w("  tool log, compared call by call.")
@@ -297,15 +304,44 @@ def main(argv: list[str] | None = None) -> int:
         if (DATA / f"{name}.jsonl").exists()
     ]
     text = render(results)
+    readme_now = README.read_text(encoding="utf-8")
+    readme_new = with_summary(readme_now, results)
     if args.check:
         current = REPORT.read_text(encoding="utf-8") if REPORT.exists() else ""
-        if current != text:
-            print("BENCHMARK.md is out of date; run python benchmark/run.py", file=sys.stderr)
+        if current != text or readme_now != readme_new:
+            print("BENCHMARK.md or README.md is out of date; run benchmark/run.py", file=sys.stderr)
             return 1
         return 0
     REPORT.write_text(text, encoding="utf-8", newline="\n")
+    README.write_text(readme_new, encoding="utf-8", newline="\n")
     print(text)
     return 0
+
+
+def summary_table(results: list[SplitResult]) -> str:
+    """The short results table shown in README.md."""
+    lines = [
+        "| Split | Replies | Sentences | Precision | Recall | False-removal rate |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for res in results:
+        h = headline(res.outcomes)
+        removed = h["tp"] + h["fp"]
+        unsupported = h["tp"] + h["fn"]
+        lines.append(
+            f"| {res.name} | {res.records} | {h['total']} "
+            f"| {100 * h['tp'] / removed:.1f}% ({h['tp']}/{removed}) "
+            f"| {100 * h['tp'] / unsupported:.1f}% ({h['tp']}/{unsupported}) "
+            f"| {100 * h['fp'] / h['supported']:.1f}% ({h['fp']}/{h['supported']}) |"
+        )
+    return "\n".join(lines)
+
+
+def with_summary(readme: str, results: list[SplitResult]) -> str:
+    """Replace the generated block between the README markers with fresh numbers."""
+    start = readme.index(MARK_START) + len(MARK_START)
+    end = readme.index(MARK_END)
+    return readme[:start] + "\n" + summary_table(results) + "\n" + readme[end:]
 
 
 if __name__ == "__main__":
