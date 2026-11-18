@@ -1,5 +1,6 @@
 """The committed BENCHMARK.md and README results must match what the script produces now."""
 
+import os
 import re
 import subprocess
 import sys
@@ -20,9 +21,15 @@ def test_readme_usage_example_runs_and_prints_what_it_says() -> None:
     assert block is not None
     code = block.group(1)
     assert len(code.strip().splitlines()) <= 10
-    done = subprocess.run(
-        [sys.executable, "-c", code], capture_output=True, text=True, check=True, cwd=ROOT
+    # Point the child process at src/ so the test passes on a fresh clone without pip install.
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (str(ROOT / "src"), env.get("PYTHONPATH", "")) if p
     )
+    done = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT, env=env
+    )
+    assert done.returncode == 0, done.stderr
     expected = [m.strip() for m in re.findall(r"#\s*->\s*(.*)", code)]
     printed = [line.strip() for line in done.stdout.splitlines()]
     for line in expected:

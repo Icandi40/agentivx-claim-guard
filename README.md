@@ -58,17 +58,18 @@ Choices behind the design:
 
 ## Results
 
-Two labelled splits of synthetic agent replies, each sentence marked supported or unsupported.
-The dev split was written alongside the rules. The test split was written separately by an
-author with the labelling guide but not the code, and was run after the rules were frozen
-(see the commit history). Full tables, confidence intervals, and every miss and wrong removal
+The headline numbers come from the **held-out test split**: 100 synthetic agent replies with
+each sentence marked supported or unsupported, written by an author who had the labelling
+guide but not the code, and run after the rules were frozen (see the commit history). A
+smaller dev split, written alongside the rules and used to tune them, is shown second; its
+numbers are optimistic. Full tables, confidence intervals, and every miss and wrong removal
 are in [BENCHMARK.md](BENCHMARK.md). This table is written by `benchmark/run.py`:
 
 <!-- benchmark:start -->
 | Split | Replies | Sentences | Precision | Recall | False-removal rate |
 | --- | --- | --- | --- | --- | --- |
-| dev | 62 | 171 | 100.0% (45/45) | 67.2% (45/67) | 0.0% (0/104) |
-| test | 100 | 515 | 98.3% (57/58) | 35.6% (57/160) | 0.3% (1/355) |
+| held-out test (headline) | 100 | 515 | 98.3% (57/58) | 35.6% (57/160) | 0.3% (1/355) |
+| dev (tuned on, optimistic) | 62 | 171 | 100.0% (45/45) | 67.2% (45/67) | 0.0% (0/104) |
 <!-- benchmark:end -->
 
 What that means: when the guard removes a sentence it is almost always right, and it rarely
