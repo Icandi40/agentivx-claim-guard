@@ -82,7 +82,7 @@ _PHRASE = re.compile(
     re.IGNORECASE,
 )
 
-_CUT = re.compile(r"[,;:()]|\s[-–—]\s|\b(?:but|so|and)\s", re.IGNORECASE)
+_CUT = re.compile(r"[,;:()]|\s[-\u2013\u2014]\s|\b(?:but|so|and)\s", re.IGNORECASE)
 _HYPOTHETICAL = re.compile(
     rf"\b(?:if|once|when|whenever|after|as soon as|unless|until|before|whether|can|could"
     rf"|would|will|won{_A}t|shall|should|might|may|must|let me|want me|{_A}ll|{_A}d like"
