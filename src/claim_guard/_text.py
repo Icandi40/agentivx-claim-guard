@@ -77,9 +77,11 @@ def split_line(line: str) -> tuple[str, list[Span]]:
 def _is_boundary(body: str, punct_start: int, end: int) -> bool:
     word_start = body.rfind(" ", 0, punct_start) + 1
     word = body[word_start:end].lower().strip("\"'“‘(")
-    if word in _ABBREVIATIONS:
+    # After a number, a short word is a unit ("42 ms.", "60 F."), not an abbreviation or initial.
+    after_number = bool(re.search(r"\d\s+$", body[:word_start]))
+    if word in _ABBREVIATIONS and not after_number:
         return False
-    if re.fullmatch(r"[a-z]\.", word) and punct_start - word_start == 1:
+    if re.fullmatch(r"[a-z]\.", word) and punct_start - word_start == 1 and not after_number:
         return False
     following = body[end:].lstrip()
     return not (following and following[0].islower())

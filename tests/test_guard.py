@@ -95,6 +95,14 @@ def test_everything_removed_gives_empty_text() -> None:
     assert isinstance(result, GuardResult)
 
 
+def test_units_after_numbers_end_sentences() -> None:
+    assert split_sentences("Latency is 42 ms. The heater holds 60 F. Ask J. Smith.") == [
+        "Latency is 42 ms.",
+        "The heater holds 60 F.",
+        "Ask J. Smith.",
+    ]
+
+
 def test_split_sentences_keeps_decimals_files_links_and_abbreviations() -> None:
     text = "Version 3.5 is in notes.md, e.g. see https://example.com/a.b now. Done!"
     assert split_sentences(text) == [

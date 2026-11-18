@@ -32,7 +32,11 @@ SPLITS = (
     (
         "test",
         "Held-out split. Written in a separate pass by an author that had the labelling guide "
-        "but not the code, and run once after the rules were frozen.",
+        "but not the code, and run once after the rules were frozen. One change was made "
+        "after freezing: the first run stopped because the sentence splitter read units such "
+        'as "42 ms." and "60 F." as abbreviations, so three replies did not split into their '
+        "labelled sentences. The splitter was fixed before any guard output on this split was "
+        "seen; no rule changed.",
     ),
 )
 CATEGORIES = ("action", "detail", "live_fact", "general_claim", "benign")
