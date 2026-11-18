@@ -22,7 +22,12 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from claim_guard import Source, guard, split_sentences
+# Let the script run from a fresh clone without pip install.
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from claim_guard import Source, guard, split_sentences  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "benchmark" / "data"
